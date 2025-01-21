@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
   HealthCheckService,
@@ -18,6 +18,7 @@ export class HealthController {
     private mongoose: MongooseHealthIndicator,
   ) {}
 
+  @ApiOperation({ summary: 'Get health of HTTP server and DB connection' })
   @Get('')
   @HealthCheck()
   check() {
