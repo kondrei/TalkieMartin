@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule, Schema } from '@nestjs/mongoose';
+import { MongooseModule } from '@nestjs/mongoose';
 import { Word, WordSchema } from './schemas/words.schema';
 import { WordsController } from './words.controller';
 import { WordsService } from './words.service';

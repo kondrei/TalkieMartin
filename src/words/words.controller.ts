@@ -1,11 +1,11 @@
 import {
   Body,
   Controller,
-  FileTypeValidator,
-  FileValidator,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
-  ParseFilePipe,
   Post,
   Put,
   UploadedFile,
@@ -19,12 +19,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { WordsService } from './words.service';
-import { FindWordDto } from './dto/find-word.dto';
+import { WordParamDto } from './dto/word-params.dto';
 import { WordsDto } from './dto/words.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { WordsResponseDto } from './dto/words-response.dto copy';
+import { WordsResponseDto } from './dto/words-response.dto';
 import { FilePipe } from 'src/pipes/file-validation.pipe';
+import { plainToInstance } from 'class-transformer';
+import { UpdateWordDto } from './dto/uodate-words.dto';
 
 @ApiTags('Words collections')
 @ApiExtraModels(PaginationResponseDto, WordsDto)
@@ -40,16 +42,16 @@ export class WordsController {
 
   @ApiOperation({ summary: 'Get one word by name.' })
   @Get(':name')
-  async findWord(@Param() params: FindWordDto) {
+  async findWord(@Param() params: WordParamDto) {
     const word = this.wordsService.findOne(params.name);
     return word;
   }
 
-  @Put()
+  @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Add a new word or a new pronunciation of an existing word.',
+    summary: 'Add a new word',
   })
   @ApiBody({ type: WordsDto })
   async addWord(
@@ -57,6 +59,32 @@ export class WordsController {
     @UploadedFile(new FilePipe('audio/mpeg'))
     file: Express.Multer.File,
   ) {
-    return this.wordsService.create(words, file?.filename);
+    const aa = await this.wordsService.create(words, file?.filename);
+    console.log('🚀 ~ WordsController ~ aa:', aa);
+    return plainToInstance(WordsResponseDto, aa.toObject());
+  }
+
+  @Put(':name')
+  @ApiOperation({
+    summary: 'Update words',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  async updateWord(
+    @Param() param: WordParamDto,
+    @Body() wordData: UpdateWordDto,
+    @UploadedFile(new FilePipe('audio/mpeg'))
+    file: Express.Multer.File,
+  ) {
+    return this.wordsService.updateWord(param.name, wordData, file.filename);
+  }
+
+  @Delete(':name')
+  @ApiOperation({
+    summary: 'Delete a word and all associated files',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteWord(@Param() params: WordParamDto) {
+    return await this.wordsService.delete(params.name);
   }
 }

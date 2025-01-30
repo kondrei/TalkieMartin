@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,20 +10,44 @@ import { Model } from 'mongoose';
 import { plainToInstance } from 'class-transformer';
 import { WordsDto } from './dto/words.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
-import { WordsResponseDto } from './dto/words-response.dto copy';
+import { WordsResponseDto } from './dto/words-response.dto';
+import { UpdateWordDto } from './dto/uodate-words.dto';
 
 @Injectable()
 export class WordsService {
-  constructor(@InjectModel(Word.name) private wordModel: Model<Word>) {}
+  constructor(
+    @InjectModel(Word.name) private readonly wordModel: Model<Word>,
+  ) {}
 
   async create(createWordDto: WordsDto, fileName: string): Promise<any> {
     const wordData = {
       dateLearned: createWordDto.dateLearned,
-      path: fileName,
+      filePath: fileName,
+    };
+    console.log('Received DTO:', createWordDto);
+    const updated = new this.wordModel({
+      name: createWordDto.name,
+      wordData: [wordData],
+    });
+    return updated.save().catch((error) => {
+      if (error?.errorResponse?.code === 11000)
+        throw new BadRequestException('Name already exists');
+      throw new InternalServerErrorException(error);
+    });
+  }
+
+  async updateWord(
+    word: string,
+    data: UpdateWordDto,
+    fileName: string,
+  ): Promise<any> {
+    const wordData = {
+      dateLearned: data.dateLearned,
+      filePath: fileName,
     };
     const updated = await this.wordModel
       .findOneAndUpdate(
-        { name: createWordDto.name },
+        { name: word },
         { $push: { wordData } },
         {
           upsert: true,
@@ -62,5 +87,15 @@ export class WordsService {
       });
 
     return plainToInstance(WordsResponseDto, result);
+  }
+
+  async delete(name: string): Promise<void> {
+    const result = await this.wordModel
+      .findOneAndDelete({ name }, { includeResultMetadata: true })
+      .exec();
+    const files =
+      result.value && result.value.wordData.map(({ filePath: path }) => path);
+    console.log('deleting files', files);
+    // todo create a file service that takes an array of files and delete them
   }
 }
