@@ -1,4 +1,4 @@
-import { ApiProperty, getSchemaPath, ApiExtraModels } from '@nestjs/swagger';
+import { ApiProperty, ApiExtraModels } from '@nestjs/swagger';
 
 @ApiExtraModels() // This ensures nested models are registered in Swagger
 export class PaginationResponseDto<T> {

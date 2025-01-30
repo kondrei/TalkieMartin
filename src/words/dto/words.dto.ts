@@ -1,40 +1,19 @@
-import { UploadedFile } from '@nestjs/common';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type, Expose } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-
-export class WordDataDto {}
+import { IsDate, IsString } from 'class-validator';
 
 export class WordsDto {
-  @ApiProperty()
+  @ApiProperty({ default: '' })
   @IsString()
   @Expose()
   name: string;
 
-  //   @ApiProperty({ type: WordDataDto })
-  //   @Type(() => WordDataDto)
-  //   @ValidateNested({ each: true })
-  //   @Expose()
-  //   wordData: WordDataDto[] = [];
-
-  @ApiProperty()
+  @ApiProperty({ default: new Date().toLocaleDateString() })
   @IsDate()
   @Type(() => Date)
   @Expose()
   dateLearned: Date;
 
-  @ApiPropertyOptional()
-  @IsString()
-  @Expose()
-  path: string;
-
-  @ApiPropertyOptional({ type: 'string', format: 'binary', required: false })
-  @IsOptional()
-  file?: Express.Multer.File;
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
+  file: Express.Multer.File;
 }

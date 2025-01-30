@@ -9,7 +9,7 @@ export class WordData {
   dateLearned: Date;
 
   @Prop({ required: true })
-  path: string;
+  filePath: string;
 }
 
 @Schema()

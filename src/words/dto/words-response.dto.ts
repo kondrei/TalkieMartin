@@ -1,13 +1,6 @@
-import { UploadedFile } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type, Expose } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsDate, IsString, ValidateNested } from 'class-validator';
 
 export class WordDataDto {
   @ApiProperty()
@@ -19,7 +12,7 @@ export class WordDataDto {
   @ApiPropertyOptional()
   @IsString()
   @Expose()
-  path: string;
+  filePath: string;
 }
 
 export class WordsResponseDto {
