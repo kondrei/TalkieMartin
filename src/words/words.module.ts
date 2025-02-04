@@ -6,27 +6,29 @@ import { WordsService } from './words.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { FilesModule } from '../files/files.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Word.name, schema: WordSchema }]),
-    // todo move logic to fileUpload module when we have storage service
     MulterModule.registerAsync({
-      useFactory: () => ({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
         storage: diskStorage({
-          destination: './uploads',
+          destination: configService.get('FILES_PATH'),
           filename: (req, file, cb) => {
-            // Generating a 32 random chars long string
             const randomName = Array(32)
               .fill(null)
               .map(() => Math.round(Math.random() * 16).toString(16))
               .join('');
-            //Calling the callback passing the random name generated with the original extension name
             cb(null, `${randomName}${extname(file.originalname)}`);
           },
         }),
       }),
+      inject: [ConfigService],
     }),
+    FilesModule,
   ],
   controllers: [WordsController],
   providers: [WordsService],

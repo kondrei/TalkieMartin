@@ -12,11 +12,13 @@ import { WordsDto } from './dto/words.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { WordsResponseDto } from './dto/words-response.dto';
 import { UpdateWordDto } from './dto/uodate-words.dto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class WordsService {
   constructor(
     @InjectModel(Word.name) private readonly wordModel: Model<Word>,
+    private readonly filesService: FilesService,
   ) {}
 
   async create(createWordDto: WordsDto, fileName: string): Promise<any> {
@@ -24,7 +26,6 @@ export class WordsService {
       dateLearned: createWordDto.dateLearned,
       filePath: fileName,
     };
-    console.log('Received DTO:', createWordDto);
     const updated = new this.wordModel({
       name: createWordDto.name,
       wordData: [wordData],
@@ -94,8 +95,10 @@ export class WordsService {
       .findOneAndDelete({ name }, { includeResultMetadata: true })
       .exec();
     const files =
-      result.value && result.value.wordData.map(({ filePath: path }) => path);
-    console.log('deleting files', files);
-    // todo create a file service that takes an array of files and delete them
+      result.value &&
+      result.value.wordData
+        .map(({ filePath }) => filePath)
+        .filter((file) => file);
+    files?.length && this.filesService.deleteFiles(files);
   }
 }
