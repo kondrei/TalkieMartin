@@ -59,9 +59,8 @@ export class WordsController {
     @UploadedFile(new FilePipe('audio/mpeg'))
     file: Express.Multer.File,
   ) {
-    const aa = await this.wordsService.create(words, file?.filename);
-    console.log('🚀 ~ WordsController ~ aa:', aa);
-    return plainToInstance(WordsResponseDto, aa.toObject());
+    const result = await this.wordsService.create(words, file?.filename);
+    return plainToInstance(WordsResponseDto, result.toObject());
   }
 
   @Put(':name')
