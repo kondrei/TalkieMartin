@@ -13,6 +13,7 @@ import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { WordsResponseDto } from './dto/words-response.dto';
 import { UpdateWordDto } from './dto/uodate-words.dto';
 import { FilesService } from '../files/files.service';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class WordsService {
@@ -63,15 +64,21 @@ export class WordsService {
     return plainToInstance(WordsResponseDto, updated.toObject());
   }
 
-  async findAll(): Promise<PaginationResponseDto<WordsResponseDto>> {
+  async findAll(
+    pagination: PaginationDto,
+  ): Promise<PaginationResponseDto<WordsResponseDto>> {
+    const query = this.wordModel.find();
+    pagination.perPage && query.limit(pagination.perPage);
+    pagination.page && query.skip(pagination.page);
     const [data, total] = await Promise.all([
-      this.wordModel.find().lean().exec(),
+      query.exec(),
       this.wordModel.countDocuments().exec(),
     ]);
     const result = {
       data: plainToInstance(WordsResponseDto, data, {
         excludeExtraneousValues: true,
       }),
+      pages: Math.round(total / pagination.perPage),
       total,
     };
 
