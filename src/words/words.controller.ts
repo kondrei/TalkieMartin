@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -27,6 +28,7 @@ import { WordsResponseDto } from './dto/words-response.dto';
 import { FilePipe } from 'src/pipes/file-validation.pipe';
 import { plainToInstance } from 'class-transformer';
 import { UpdateWordDto } from './dto/uodate-words.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @ApiTags('Words collections')
 @ApiExtraModels(PaginationResponseDto, WordsDto)
@@ -36,8 +38,10 @@ export class WordsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all known learned words.' })
-  async getWordsList(): Promise<PaginationResponseDto<WordsResponseDto>> {
-    return await this.wordsService.findAll();
+  async getWordsList(
+    @Query() param: PaginationDto,
+  ): Promise<PaginationResponseDto<WordsResponseDto>> {
+    return await this.wordsService.findAll(param);
   }
 
   @ApiOperation({ summary: 'Get one word by name.' })

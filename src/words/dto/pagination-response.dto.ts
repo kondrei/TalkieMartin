@@ -6,5 +6,8 @@ export class PaginationResponseDto<T> {
   data: T[];
 
   @ApiProperty({ description: 'Total number of items' })
+  pages: number;
+
+  @ApiProperty({ description: 'Total number of items' })
   total: number;
 }
