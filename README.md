@@ -1,30 +1,96 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Project Specification
 
-## Description
+This project is a NestJS-based API for managing learned words and associated audio files. It uses MongoDB for data storage and supports file uploads, health checks, and pagination.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Main Features
+
+- **Words Management**: Create, update, list, and delete words, each with associated metadata and audio files.
+- **File Uploads**: Audio files are uploaded and stored in a configurable directory.
+- **Health Checks**: HTTP and MongoDB health endpoints using NestJS Terminus.
+- **Pagination**: List words with pagination support.
+- **Swagger API Documentation**: Available at `/api` endpoint.
+
+### Environment Variables
+
+The application uses the following environment variables (see `env-example`):
+
+```env
+PORT=3000                # Server port
+MONGO_URI=mongodb://localhost:27017/talkiemartin  # MongoDB connection string
+FILES_PATH=uploads       # Directory for uploaded files
+```
+
+### Setup Instructions
+
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment**
+   - Copy `env-example` to `.env` and fill in your values.
+
+3. **Run the project**
+   ```bash
+   npm run start         # Start in development
+   npm run dev           # Start in watch mode
+   npm run start:prod    # Start in production
+   ```
+
+4. **Run tests**
+   ```bash
+   npm run test          # Unit tests
+   npm run test:e2e      # End-to-end tests
+   npm run test:cov      # Test coverage
+   ```
+
+5. **API Documentation**
+   - Visit `http://localhost:PORT/api` for Swagger UI.
+
+### Folder Structure
+
+```
+src/
+  app.module.ts
+  main.ts
+  files/
+    files.module.ts
+    files.service.ts
+  health/
+    health.controller.ts
+    health.module.ts
+  pipes/
+    file-validation.pipe.ts
+  words/
+    words.controller.ts
+    words.module.ts
+    words.service.ts
+    dto/
+      pagination-response.dto.ts
+      pagination.dto.ts
+      uodate-words.dto.ts
+      word-params.dto.ts
+      words-response.dto.ts
+      words.dto.ts
+    schemas/
+      words.schema.ts
+test/
+  app.e2e-spec.ts
+  jest-e2e.json
+```
+
+### Technologies Used
+
+- NestJS
+- MongoDB (via Mongoose)
+- Swagger
+- Multer (file uploads)
+- Terminus (health checks)
+- Class-validator & class-transformer
+
+---
 
 ## Project setup
 

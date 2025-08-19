@@ -1,0 +1,11 @@
+# Example environment variables for TalkieMartin
+# Copy this file to `.env` and fill in your values
+
+# Server port
+PORT=3000
+
+# MongoDB connection string
+MONGO_URI=mongodb://localhost:27017/talkiemartin
+
+# Path to store uploaded files
+FILES_PATH=uploads
