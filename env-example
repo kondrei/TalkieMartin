@@ -5,7 +5,8 @@
 PORT=3000
 
 # MongoDB connection string
-MONGO_URI=mongodb://localhost:27017/talkiemartin
+MONGO_URI=mongodb://localhost:27017/
+DB_NAME=talkieMartin
 
 # Path to store uploaded files
 FILES_PATH=uploads
