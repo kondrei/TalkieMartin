@@ -33,12 +33,12 @@ export class MemoryDto {
   @Expose()
   contentType: string;
 
-  @ApiProperty({  required: false })
+  @ApiProperty({ required: false })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   @Expose()
-  @Transform(({ value }) => Array.isArray(value) ? value : value.split(','))
+  @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
   tags: string[] = [];
 
   @ApiProperty({ type: [String], required: false })
@@ -46,9 +46,9 @@ export class MemoryDto {
   @IsString({ each: true })
   @IsOptional()
   @Expose()
-  @Transform(({ value }) => Array.isArray(value) ? value : [])
+  @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
   familyMembers: string[] = [];
 
-  // @ApiProperty({ type: 'string', format: 'binary', required: true })
-  // file: Express.Multer.File;
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
+  file: Express.Multer.File;
 }
