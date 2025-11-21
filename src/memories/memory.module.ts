@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Word, WordSchema } from './schemas/words.schema';
-import { WordsController } from './words.controller';
-import { WordsService } from './words.service';
+import { Memory, MemorySchema } from './schemas/memory.schema';
+import { MemoryController } from './memory.controller';
+import { MemoryService } from './memory.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -11,7 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Word.name, schema: WordSchema }]),
+    MongooseModule.forFeature([{ name: Memory.name, schema: MemorySchema }]),
     MulterModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -30,7 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     FilesModule,
   ],
-  controllers: [WordsController],
-  providers: [WordsService],
+  controllers: [MemoryController],
+  providers: [MemoryService],
 })
-export class WordsModule {}
+export class MemoryModule {}

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HealthModule } from './health/health.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { WordsModule } from './words/words.module';
+import { MemoryModule } from './memories/memory.module';
 import { FilesModule } from './files/files.module';
 
 @Module({
@@ -13,10 +13,11 @@ import { FilesModule } from './files/files.module';
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
         uri: config.get('MONGO_URI'),
+        dbName: config.get('DB_NAME'),
       }),
       inject: [ConfigService],
     }),
-    WordsModule,
+    MemoryModule,
     FilesModule,
   ],
 })
