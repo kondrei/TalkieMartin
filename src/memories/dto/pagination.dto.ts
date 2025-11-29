@@ -16,4 +16,11 @@ export class PaginationDto {
   @Transform(({ value }) => Number(value) || 25)
   @Max(255)
   perPage: number = 25;
+
+  @ApiProperty({ default: 25 })
+  @Expose()
+  @IsNumber()
+  @Transform(({ value }) => Number(value) || 25)
+  @Max(255)
+  currentPage: number = 25;
 }
