@@ -1,23 +1,19 @@
 import { Injectable, PipeTransform, BadRequestException } from '@nestjs/common';
-import { FileTypeValidator } from '@nestjs/common/pipes';
 
 @Injectable()
 export class FilePipe implements PipeTransform {
-  constructor(private readonly fileType: string) {}
+  constructor(private readonly fileTypes: string[]) {}
 
   transform(value: any) {
     if (!value) {
       return value;
     }
 
-    const fileTypeValidator = new FileTypeValidator({
-      fileType: this.fileType,
-    });
-    const isValid = fileTypeValidator.isValid(value);
+    const isValid = this.fileTypes.includes(value.mimetype);
 
     if (!isValid) {
       throw new BadRequestException(
-        `Invalid file type. Expected: ${this.fileType}`,
+        `Invalid file type. Expected one of: ${this.fileTypes.join(', ')}, but got: ${value.mimetype}`,
       );
     }
 

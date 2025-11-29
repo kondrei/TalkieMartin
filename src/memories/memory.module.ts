@@ -4,10 +4,9 @@ import { Memory, MemorySchema } from './schemas/memory.schema';
 import { MemoryController } from './memory.controller';
 import { MemoryService } from './memory.service';
 import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { FilesModule } from '../files/files.module';
+import { memoryStorage } from 'multer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { S3Module } from 'src/s3/s3.module';
 
 @Module({
   imports: [
@@ -15,20 +14,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     MulterModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        storage: diskStorage({
-          destination: configService.get('FILES_PATH'),
-          filename: (req, file, cb) => {
-            const randomName = Array(32)
-              .fill(null)
-              .map(() => Math.round(Math.random() * 16).toString(16))
-              .join('');
-            cb(null, `${randomName}${extname(file.originalname)}`);
-          },
-        }),
+        storage: memoryStorage(),
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit
+        },
       }),
       inject: [ConfigService],
     }),
-    FilesModule,
+    S3Module,
   ],
   controllers: [MemoryController],
   providers: [MemoryService],

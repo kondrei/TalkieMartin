@@ -3,7 +3,7 @@ import { HealthModule } from './health/health.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MemoryModule } from './memories/memory.module';
-import { FilesModule } from './files/files.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { FilesModule } from './files/files.module';
       inject: [ConfigService],
     }),
     MemoryModule,
-    FilesModule,
+    S3Module,
   ],
 })
 export class AppModule {}

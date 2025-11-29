@@ -8,6 +8,9 @@ export class PaginationResponseDto<T> {
   @ApiProperty({ description: 'Total number of items' })
   pages: number = 1;
 
+  @ApiProperty({ default: 25 })
+  currentPage: number = 25;
+
   @ApiProperty({ description: 'Total number of items' })
   total: number;
 }

@@ -7,6 +7,7 @@ import {
   HttpHealthIndicator,
   MongooseHealthIndicator,
 } from '@nestjs/terminus';
+import { S3HealthService } from '../s3/s3-health.service';
 
 @ApiTags('Health')
 @Controller('health')
@@ -16,6 +17,7 @@ export class HealthController {
     private health: HealthCheckService,
     private configService: ConfigService,
     private mongoose: MongooseHealthIndicator,
+    private readonly s3HealthService: S3HealthService,
   ) {}
 
   @ApiOperation({ summary: 'Get health of HTTP server and DB connection' })
@@ -30,6 +32,11 @@ export class HealthController {
         ),
       ,
       async () => this.mongoose.pingCheck('mongoose'),
+      async () =>
+        this.s3HealthService.check(
+          's3_bucket',
+          this.configService.get('AWS_S3_BUCKET_NAME'),
+        ),
     ]);
   }
 }

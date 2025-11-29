@@ -25,10 +25,11 @@ import { MemoryDto } from './dto/memory.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MemoryResponseDto } from './dto/memory-response.dto';
-import { FilePipe } from 'src/pipes/file-validation.pipe';
+import { FilePipe } from '../pipes/file-validation.pipe';
 import { plainToInstance } from 'class-transformer';
 import { UpdateMemoryDto } from './dto/update-memory.dto';
 import { PaginationDto } from './dto/pagination.dto';
+import { MemoryMimeTypes } from './types/memory-types';
 
 @ApiTags('Family Memories')
 @ApiExtraModels(PaginationResponseDto, MemoryDto)
@@ -61,11 +62,10 @@ export class MemoryController {
   @ApiBody({ type: MemoryDto })
   async addMemory(
     @Body() memory: MemoryDto,
-    @UploadedFile(new FilePipe('audio/mpeg'))
+    @UploadedFile(new FilePipe(MemoryMimeTypes))
     file: Express.Multer.File,
   ) {
-    const result = await this.memoryService.create(memory, file?.filename);
-    console.log("🚀 ~ MemoryController ~ addMemory ~ memory:", memory)
+    const result = await this.memoryService.create(memory, file);
     return plainToInstance(MemoryResponseDto, result.toObject());
   }
 
@@ -78,10 +78,14 @@ export class MemoryController {
   async updateMemory(
     @Param() param: MemoryParamDto,
     @Body() memoryData: UpdateMemoryDto,
-    @UploadedFile(new FilePipe('audio/mpeg'))
+    @UploadedFile(new FilePipe(MemoryMimeTypes))
     file: Express.Multer.File,
   ) {
-    return this.memoryService.updateMemory(param.title, memoryData, file.filename);
+    return this.memoryService.updateMemory(
+      param.title,
+      memoryData,
+      file.filename,
+    );
   }
 
   @Delete(':title')

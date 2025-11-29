@@ -4,43 +4,71 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Memory } from './schemas/memory.schema';
-import { Model } from 'mongoose';
+import { Connection, Model } from 'mongoose';
 import { plainToInstance } from 'class-transformer';
 import { MemoryDto } from './dto/memory.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { MemoryResponseDto } from './dto/memory-response.dto';
 import { UpdateMemoryDto } from './dto/update-memory.dto';
-import { FilesService } from '../files/files.service';
 import { PaginationDto } from './dto/pagination.dto';
+import { S3Service } from '../s3/s3.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MemoryService {
   constructor(
-    @InjectModel(Memory.name) private readonly memoryModel: Model<Memory>,
-    private readonly filesService: FilesService,
+    @InjectConnection() private readonly connection: Connection,
+    @InjectModel(Memory.name)
+    private readonly memoryModel: Model<Memory>,
+    private readonly s3Service: S3Service,
+    private readonly configService: ConfigService,
   ) {}
 
-  async create(createMemoryDto: MemoryDto, fileName: string): Promise<any> {
-    const memoryContent = {
-      dateCreated: createMemoryDto.dateCreated,
-      filePath: fileName,
-      contentType: createMemoryDto.contentType,
-      description: createMemoryDto.description,
-    };
-    const memory = new this.memoryModel({
-      title: createMemoryDto.title,
-      description: createMemoryDto.description,
-      tags: createMemoryDto.tags,
-      familyMembers: createMemoryDto.familyMembers,
-      memoryContent: [memoryContent],
-    });
-    return memory.save().catch((error) => {
-      if (error?.errorResponse?.code === 11000)
-        throw new BadRequestException('Title already exists');
-      throw new InternalServerErrorException(error);
-    });
+  async create(
+    createMemoryDto: MemoryDto,
+    file: Express.Multer.File,
+  ): Promise<any> {
+    const session = await this.connection.startSession();
+    try {
+      session.startTransaction();
+      const memoryContent = {
+        dateCreated: createMemoryDto.dateCreated,
+        filePath: `${Date.now()}-${file.originalname}`,
+        contentType: createMemoryDto.contentType,
+        description: createMemoryDto.description,
+      };
+      const memory = new this.memoryModel({
+        title: createMemoryDto.title,
+        description: createMemoryDto.description,
+        tags: createMemoryDto.tags,
+        familyMembers: createMemoryDto.familyMembers,
+        memoryContent: [memoryContent],
+      });
+      const savedMemory = await memory.save({ session }).catch((error) => {
+        if (error?.errorResponse?.code === 11000)
+          throw new BadRequestException('Title already exists');
+        throw new InternalServerErrorException(error);
+      });
+
+      const savedFileName = savedMemory.memoryContent[0]?.filePath;
+
+      await this.s3Service.uploadFile(
+        this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+        savedFileName,
+        file,
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+      return memory;
+    } catch (error) {
+      await session.abortTransaction();
+
+      session.endSession();
+      throw error;
+    }
   }
 
   async updateMemory(
@@ -87,6 +115,7 @@ export class MemoryService {
       }),
       pages: Math.ceil(total / pagination?.perPage),
       total,
+      currentPage: pagination?.page || 1,
     };
 
     return result;
@@ -113,6 +142,6 @@ export class MemoryService {
       result.value.memoryContent
         .map(({ filePath }) => filePath)
         .filter((file) => file);
-    files?.length && this.filesService.deleteFiles(files);
+    // todo to dlete the file from S3 storage
   }
 }
