@@ -8,9 +8,11 @@ import {
   MongooseHealthIndicator,
 } from '@nestjs/terminus';
 import { S3HealthService } from '../s3/s3-health.service';
+import { Public } from '../decorators/public.decorator';
 
 @ApiTags('Health')
 @Controller('health')
+@Public()
 export class HealthController {
   constructor(
     private http: HttpHealthIndicator,

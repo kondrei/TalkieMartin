@@ -22,9 +22,21 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  Object.keys(document.paths).forEach((path) => {
+    Object.keys(document.paths[path]).forEach((method) => {
+      const operation = (document.paths[path] as any)[method];
+      if (operation) {
+        operation.security = [{ bearer: [] }];
+      }
+    });
+  });
+
+  SwaggerModule.setup('api', app, document);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
 

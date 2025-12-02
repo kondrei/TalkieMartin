@@ -10,9 +10,11 @@ import {
   Put,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiExtraModels,
@@ -30,8 +32,11 @@ import { plainToInstance } from 'class-transformer';
 import { UpdateMemoryDto } from './dto/update-memory.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { MemoryMimeTypes } from './types/memory-types';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Family Memories')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @ApiExtraModels(PaginationResponseDto, MemoryDto)
 @Controller('memories')
 export class MemoryController {

@@ -35,7 +35,7 @@ export class MemoryService {
       session.startTransaction();
       const memoryContent = {
         dateCreated: createMemoryDto.dateCreated,
-        filePath: `${Date.now()}-${file.originalname}`,
+        filePath: `${Date.now()}-${file?.originalname}`,
         contentType: createMemoryDto.contentType,
         description: createMemoryDto.description,
       };

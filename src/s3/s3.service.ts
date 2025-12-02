@@ -56,11 +56,10 @@ export class S3Service {
         }),
       );
 
-     await this.checkFileExists(bucketName, fileName);
+      await this.checkFileExists(bucketName, fileName);
 
       return fileName;
     } catch (error) {
-      console.error('🚀 ~ S3Service ~ uploadFile ~ Error:', error);
       throw new Error(`Failed to upload file to S3: ${error.message}`);
     }
   }

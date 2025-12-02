@@ -7,6 +7,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Module } from 'src/s3/s3.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { S3Module } from 'src/s3/s3.module';
       inject: [ConfigService],
     }),
     S3Module,
+    JwtModule,
   ],
   controllers: [MemoryController],
   providers: [MemoryService],
