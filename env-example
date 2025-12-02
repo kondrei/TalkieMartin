@@ -10,3 +10,5 @@ DB_NAME=talkieMartin
 
 # Path to store uploaded files
 FILES_PATH=uploads
+
+JWT_SECRET=change_me
