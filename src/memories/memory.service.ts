@@ -122,7 +122,7 @@ export class MemoryService {
   }
 
   async findOne(title: string): Promise<MemoryResponseDto> {
-    const result = this.memoryModel
+    const result = await this.memoryModel
       .findOne({ title })
       .orFail()
       .lean()
@@ -130,7 +130,10 @@ export class MemoryService {
         throw new NotFoundException();
       });
 
-    return plainToInstance(MemoryResponseDto, result);
+    return plainToInstance(
+      MemoryResponseDto,
+      await this.attachDownloadUrl(result),
+    );
   }
 
   async delete(title: string): Promise<void> {
@@ -144,4 +147,24 @@ export class MemoryService {
         .filter((file) => file);
     // todo to dlete the file from S3 storage
   }
+
+  private async attachDownloadUrl(
+    result: MemoryResponseDto,
+  ): Promise<MemoryResponseDto> {
+    const memoryFiles = result.memoryContent.map((mc) => mc.filePath);
+    const s3Paths = await Promise.all(
+      memoryFiles.map((filePath) =>
+        this.s3Service.getDownloadUrl(
+          this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+          filePath,
+        ),
+      ),
+    );
+    result.memoryContent.forEach((item, idx) => {
+      item.filePath = s3Paths[idx];
+    });
+    return result;
+  }
 }
+
+
