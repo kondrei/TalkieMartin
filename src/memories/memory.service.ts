@@ -8,13 +8,14 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Memory } from './schemas/memory.schema';
 import { Connection, Model } from 'mongoose';
 import { plainToInstance } from 'class-transformer';
-import { MemoryDto } from './dto/memory.dto';
+import { FileNamesDto, MemoryContentDto, MemoryDto } from './dto/memory.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
 import { MemoryResponseDto } from './dto/memory-response.dto';
 import { UpdateMemoryDto } from './dto/update-memory.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { S3Service } from '../s3/s3.service';
 import { ConfigService } from '@nestjs/config';
+import { MemoryMimeTypes } from './types/memory-types';
 
 @Injectable()
 export class MemoryService {
@@ -28,36 +29,43 @@ export class MemoryService {
 
   async create(
     createMemoryDto: MemoryDto,
-    file: Express.Multer.File,
+    files: Array<Express.Multer.File>,
   ): Promise<any> {
     const session = await this.connection.startSession();
     try {
       session.startTransaction();
-      const memoryContent = {
-        dateCreated: createMemoryDto.dateCreated,
-        filePath: `${Date.now()}-${file?.originalname}`,
-        contentType: createMemoryDto.contentType,
-        description: createMemoryDto.description,
-      };
+      const memoryContent: MemoryContentDto[] = [];
+      const fileNames: FileNamesDto[] = [];
+      files.map((file) => {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        memoryContent.push({
+          dateCreated: createMemoryDto.dateCreated,
+          filePath: fileName,
+          contentType: file.mimetype,
+          description: createMemoryDto.description,
+        });
+        fileNames.push({
+          fileObject: file,
+          fileName: fileName,
+        });
+      });
+
       const memory = new this.memoryModel({
         title: createMemoryDto.title,
         description: createMemoryDto.description,
         tags: createMemoryDto.tags,
         familyMembers: createMemoryDto.familyMembers,
-        memoryContent: [memoryContent],
+        memoryContent: memoryContent,
       });
-      const savedMemory = await memory.save({ session }).catch((error) => {
+      await memory.save({ session }).catch((error) => {
         if (error?.errorResponse?.code === 11000)
           throw new BadRequestException('Title already exists');
         throw new InternalServerErrorException(error);
       });
 
-      const savedFileName = savedMemory.memoryContent[0]?.filePath;
-
-      await this.s3Service.uploadFile(
+      await this.s3Service.uploadFiles(
         this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-        savedFileName,
-        file,
+        fileNames,
       );
 
       await session.commitTransaction();
@@ -79,7 +87,7 @@ export class MemoryService {
     const memoryContent = {
       dateCreated: data.dateCreated,
       filePath: fileName,
-      contentType: data.contentType,
+      contentType: 'file.mimetype',
       description: data.description,
     };
     const updated = await this.memoryModel
@@ -104,7 +112,8 @@ export class MemoryService {
   ): Promise<PaginationResponseDto<MemoryResponseDto>> {
     const query = this.memoryModel.find();
     pagination?.perPage && query.limit(pagination.perPage);
-    pagination?.page && query.skip((pagination.page - 1) * pagination.perPage);
+    pagination?.currentPage &&
+      query.skip((pagination.currentPage - 1) * pagination.perPage);
     const [data, total] = await Promise.all([
       query.exec(),
       this.memoryModel.countDocuments().exec(),
@@ -137,15 +146,36 @@ export class MemoryService {
   }
 
   async delete(title: string): Promise<void> {
-    const result = await this.memoryModel
-      .findOneAndDelete({ title }, { includeResultMetadata: true })
-      .exec();
-    const files =
-      result.value &&
-      result.value.memoryContent
-        .map(({ filePath }) => filePath)
-        .filter((file) => file);
-    // todo to dlete the file from S3 storage
+    const session = await this.connection.startSession();
+    try {
+      session.startTransaction();
+      const result = await this.memoryModel
+        .findOneAndDelete({ title }, { includeResultMetadata: true, session })
+        .exec();
+      if (!result.value) {
+        throw new NotFoundException('Memory not found');
+      }
+      const files =
+        result.value &&
+        result.value.memoryContent
+          .map(({ filePath }) => filePath)
+          .filter((file) => file);
+
+      const deleted = await this.s3Service.deleteFiles(
+        this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+        files,
+      );
+      if (!deleted) {
+        throw new BadRequestException('Failed to delete files from S3');
+      }
+      await session.commitTransaction();
+      session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+
+      session.endSession();
+      throw error;
+    }
   }
 
   private async attachDownloadUrl(
@@ -166,5 +196,3 @@ export class MemoryService {
     return result;
   }
 }
-
-

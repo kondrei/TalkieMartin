@@ -8,15 +8,16 @@ export class FilePipe implements PipeTransform {
     if (!value) {
       return value;
     }
+    value.map((file: Express.Multer.File) => {
+      const isValid = this.fileTypes.includes(file.mimetype);
 
-    const isValid = this.fileTypes.includes(value.mimetype);
+      if (!isValid) {
+        throw new BadRequestException(
+          `Invalid file type. Expected one of: ${this.fileTypes.join(', ')}, but got: ${file.mimetype}`,
+        );
+      }
 
-    if (!isValid) {
-      throw new BadRequestException(
-        `Invalid file type. Expected one of: ${this.fileTypes.join(', ')}, but got: ${value.mimetype}`,
-      );
-    }
-
-    return value;
+      return value;
+    });
   }
 }

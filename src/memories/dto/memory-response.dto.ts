@@ -3,7 +3,7 @@ import { Type, Expose, Transform } from 'class-transformer';
 import { IsDate, IsString, ValidateNested, IsArray, IsEnum } from 'class-validator';
 import { MemoryTypes } from '../types/memory-types';
 
-export class MemoryContentDto {
+export class MemoryContentResponseDto {
   @ApiProperty()
   @IsDate()
   @Type(() => Date)
@@ -80,13 +80,13 @@ export class MemoryResponseDto {
   })
   familyMembers: string[] = [];
 
-  @ApiProperty({ type: [MemoryContentDto] })
-  @Type(() => MemoryContentDto)
+  @ApiProperty({ type: [MemoryContentResponseDto] })
+  @Type(() => MemoryContentResponseDto)
   @ValidateNested({ each: true })
   @Expose()
   @Transform(({ value }) => {
     if (!Array.isArray(value)) return [];
     return value;
   })
-  memoryContent: MemoryContentDto[] = [];
+  memoryContent: MemoryContentResponseDto[] = [];
 }

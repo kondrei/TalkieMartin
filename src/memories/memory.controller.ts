@@ -10,6 +10,7 @@ import {
   Put,
   Query,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -25,7 +26,7 @@ import { MemoryService } from './memory.service';
 import { MemoryParamDto } from './dto/memory-params.dto';
 import { MemoryDto } from './dto/memory.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { MemoryResponseDto } from './dto/memory-response.dto';
 import { FilePipe } from '../pipes/file-validation.pipe';
 import { plainToInstance } from 'class-transformer';
@@ -59,7 +60,7 @@ export class MemoryController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 5))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Add a new family memory',
@@ -67,10 +68,10 @@ export class MemoryController {
   @ApiBody({ type: MemoryDto })
   async addMemory(
     @Body() memory: MemoryDto,
-    @UploadedFile(new FilePipe(MemoryMimeTypes))
-    file: Express.Multer.File,
+    @UploadedFiles(new FilePipe(MemoryMimeTypes))
+    files: Array<Express.Multer.File>,
   ) {
-    const result = await this.memoryService.create(memory, file);
+    const result = await this.memoryService.create(memory, files);
     return plainToInstance(MemoryResponseDto, result.toObject());
   }
 
