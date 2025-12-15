@@ -14,11 +14,10 @@ export class S3Service {
   async checkBucketExists(bucketName: string): Promise<boolean> {
     const s3Client = new S3Client({});
     try {
-      const result = await s3Client.send(
-        new HeadBucketCommand({ Bucket: bucketName }),
-      );
+      await s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
       return true;
     } catch (error) {
+      console.error('Error checking if bucket exists in S3:', error);
       return false;
     }
   }
@@ -33,6 +32,7 @@ export class S3Service {
       );
       return true;
     } catch (error) {
+      console.error('Error checking if file exists in S3:', error);
       return false;
     }
   }
@@ -42,7 +42,7 @@ export class S3Service {
     files: Array<{ fileObject: Express.Multer.File; fileName: string }> = [],
   ): Promise<void> {
     const s3Client = new S3Client({});
-    
+
     try {
       await Promise.all(
         files.map(async (file) => {
@@ -76,7 +76,9 @@ export class S3Service {
       });
       const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
       return url;
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+    }
   }
 
   async deleteFiles(bucketName: string, fileNames: string[]): Promise<boolean> {
@@ -90,6 +92,7 @@ export class S3Service {
       );
       return true;
     } catch (error) {
+      console.error('Error deleting files from S3:', error);
       return false;
     }
   }

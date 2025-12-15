@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UserDto {
   @ApiPropertyOptional()
@@ -39,5 +45,4 @@ export class UserDto {
   @MaxLength(30)
   @MinLength(8)
   password: string;
-
 }

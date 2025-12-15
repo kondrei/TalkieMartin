@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type, Expose, Transform } from 'class-transformer';
-import { IsDate, IsString, ValidateNested, IsArray, IsEnum } from 'class-validator';
+import {
+  IsDate,
+  IsString,
+  ValidateNested,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
 import { MemoryTypes } from '../types/memory-types';
 
 export class MemoryContentResponseDto {

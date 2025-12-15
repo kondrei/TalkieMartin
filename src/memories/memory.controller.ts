@@ -68,7 +68,7 @@ export class MemoryController {
   @ApiBody({ type: MemoryDto })
   async addMemory(
     @Body() memory: MemoryDto,
-    @UploadedFiles(new FilePipe(MemoryMimeTypes))
+    @UploadedFiles()
     files: Array<Express.Multer.File>,
   ) {
     const result = await this.memoryService.create(memory, files);

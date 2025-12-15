@@ -1,6 +1,4 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { OmitType } from '@nestjs/swagger';
 import { UserDto } from './user.dto';
 
-export class UserResponseDto extends OmitType(UserDto, ['password'] as const) {
-}
+export class UserResponseDto extends OmitType(UserDto, ['password'] as const) {}

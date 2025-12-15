@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { AuthService } from './auth.service';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from './auth.guard';
 import { Public } from '../decorators/public.decorator';
 import { plainToInstance } from 'class-transformer';
