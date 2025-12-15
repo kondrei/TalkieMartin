@@ -1,4 +1,5 @@
 import {
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
@@ -36,29 +37,25 @@ export class S3Service {
     }
   }
 
-  async uploadFile(
+  async uploadFiles(
     bucketName: string,
-    fileName: string,
-    file: Express.Multer.File,
-  ): Promise<string> {
+    files: Array<{ fileObject: Express.Multer.File; fileName: string }> = [],
+  ): Promise<void> {
     const s3Client = new S3Client({});
-
-    if (!file.buffer || file.buffer.length === 0) {
-      throw new Error('File buffer is empty or missing');
-    }
+    
     try {
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: fileName,
-          Body: file.buffer,
-          ContentType: file.mimetype,
+      await Promise.all(
+        files.map(async (file) => {
+          await s3Client.send(
+            new PutObjectCommand({
+              Bucket: bucketName,
+              Key: file.fileName,
+              Body: file.fileObject.buffer,
+              ContentType: file.fileObject.mimetype,
+            }),
+          );
         }),
       );
-
-      await this.checkFileExists(bucketName, fileName);
-
-      return fileName;
     } catch (error) {
       throw new Error(`Failed to upload file to S3: ${error.message}`);
     }
@@ -80,5 +77,20 @@ export class S3Service {
       const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
       return url;
     } catch (error) {}
+  }
+
+  async deleteFiles(bucketName: string, fileNames: string[]): Promise<boolean> {
+    const s3Client = new S3Client({});
+    try {
+      await s3Client.send(
+        new DeleteObjectsCommand({
+          Bucket: bucketName,
+          Delete: { Objects: fileNames.map((file) => ({ Key: file })) },
+        }),
+      );
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }

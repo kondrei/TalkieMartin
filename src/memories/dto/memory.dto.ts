@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type, Expose, Transform } from 'class-transformer';
-import { IsDate, IsString, IsArray, IsEnum, IsOptional } from 'class-validator';
-import { MemoryTypes } from '../types/memory-types';
+import { IsDate, IsString, IsArray, IsOptional } from 'class-validator';
 
 export class MemoryDto {
   @ApiProperty({ default: '' })
@@ -28,11 +27,6 @@ export class MemoryDto {
   })
   dateCreated: Date = new Date();
 
-  @ApiProperty({ enum: MemoryTypes })
-  @IsEnum(MemoryTypes)
-  @Expose()
-  contentType: string;
-
   @ApiProperty({ required: false })
   @IsArray()
   @IsString({ each: true })
@@ -49,6 +43,26 @@ export class MemoryDto {
   @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
   familyMembers: string[] = [];
 
-  @ApiProperty({ type: 'string', format: 'binary', required: true })
-  file: Express.Multer.File;
+  @ApiProperty({
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+    required: true,
+    description: 'Upload up to 5 files',
+  })
+  files: Array<Express.Multer.File>;
+}
+
+export class MemoryContentDto {
+  dateCreated: Date = new Date();
+
+  filePath: string = '';
+
+  contentType: string;
+
+  description: string = '';
+}
+
+export class FileNamesDto {
+  fileObject: Express.Multer.File;
+  fileName: string;
 }
