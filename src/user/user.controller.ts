@@ -1,20 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Injectable,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserDto } from './dto/user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserParamDto } from './dto/user-param.dot';
-import { UserResponseWithPasswordDto } from './dto/user-response-with-password';
 import { Public } from '../decorators/public.decorator';
-import { AuthGuard } from '..//auth/auth.guard';
 
 @ApiTags('Users')
 @Controller('user')

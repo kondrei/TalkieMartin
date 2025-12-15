@@ -14,6 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
         useFactory: () => {
           const schema = UserSchema;
           schema.pre('save', async function () {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const user = this;
             const salt = await bcrypt.genSalt();
             const hashPassword = await bcrypt.hash(this.password, salt);

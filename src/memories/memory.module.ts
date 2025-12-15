@@ -5,7 +5,6 @@ import { MemoryController } from './memory.controller';
 import { MemoryService } from './memory.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Module } from 'src/s3/s3.module';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -13,14 +12,12 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     MongooseModule.forFeature([{ name: Memory.name, schema: MemorySchema }]),
     MulterModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         storage: memoryStorage(),
         limits: {
           fileSize: 10 * 1024 * 1024, // 10MB limit
         },
       }),
-      inject: [ConfigService],
     }),
     S3Module,
     JwtModule,

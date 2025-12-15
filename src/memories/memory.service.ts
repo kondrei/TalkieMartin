@@ -15,7 +15,6 @@ import { UpdateMemoryDto } from './dto/update-memory.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { S3Service } from '../s3/s3.service';
 import { ConfigService } from '@nestjs/config';
-import { MemoryMimeTypes } from './types/memory-types';
 
 @Injectable()
 export class MemoryService {
