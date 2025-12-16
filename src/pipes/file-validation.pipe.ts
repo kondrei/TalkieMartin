@@ -8,7 +8,8 @@ export class FilePipe implements PipeTransform {
     if (!value) {
       return value;
     }
-    value.map((file: Express.Multer.File) => {
+    
+    value.forEach((file: Express.Multer.File) => {
       const isValid = this.fileTypes.includes(file.mimetype);
 
       if (!isValid) {
@@ -16,8 +17,8 @@ export class FilePipe implements PipeTransform {
           `Invalid file type. Expected one of: ${this.fileTypes.join(', ')}, but got: ${file.mimetype}`,
         );
       }
-
-      return value;
     });
+
+    return value;
   }
 }

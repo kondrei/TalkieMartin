@@ -68,7 +68,7 @@ export class MemoryController {
   @ApiBody({ type: MemoryDto })
   async addMemory(
     @Body() memory: MemoryDto,
-    @UploadedFiles()
+    @UploadedFiles(new FilePipe(MemoryMimeTypes))
     files: Array<Express.Multer.File>,
   ) {
     const result = await this.memoryService.create(memory, files);
@@ -79,19 +79,15 @@ export class MemoryController {
   @ApiOperation({
     summary: 'Update a family memory',
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 5))
   @ApiConsumes('multipart/form-data')
   async updateMemory(
     @Param() param: MemoryParamDto,
     @Body() memoryData: UpdateMemoryDto,
-    @UploadedFile(new FilePipe(MemoryMimeTypes))
-    file: Express.Multer.File,
+    @UploadedFiles(new FilePipe(MemoryMimeTypes))
+    files: Array<Express.Multer.File>,
   ) {
-    return this.memoryService.updateMemory(
-      param.title,
-      memoryData,
-      file.filename,
-    );
+    return this.memoryService.updateMemory(param.title, memoryData, files);
   }
 
   @Delete(':title')
