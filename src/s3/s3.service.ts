@@ -32,8 +32,14 @@ export class S3Service {
       );
       return true;
     } catch (error) {
+      if (
+        error.name === 'NotFound' ||
+        error.$metadata?.httpStatusCode === 404
+      ) {
+        return false;
+      }
       console.error('Error checking if file exists in S3:', error);
-      return false;
+      throw error;
     }
   }
 
@@ -66,10 +72,14 @@ export class S3Service {
     fileName: string,
   ): Promise<string | null> {
     const s3Client = new S3Client({});
-    if ((await this.checkFileExists(bucketName, fileName)) === false) {
-      return null;
-    }
     try {
+      const fileExists = await this.checkFileExists(bucketName, fileName);
+
+      if (!fileExists) {
+        console.error(`File not found in S3: ${fileName}`);
+        return null;
+      }
+
       const command = new GetObjectCommand({
         Bucket: bucketName,
         Key: fileName,
@@ -78,6 +88,7 @@ export class S3Service {
       return url;
     } catch (error) {
       console.error('Error generating signed URL:', error);
+      return null;
     }
   }
 

@@ -81,29 +81,63 @@ export class MemoryService {
   async updateMemory(
     title: string,
     data: UpdateMemoryDto,
-    fileName: string,
+    files: Array<Express.Multer.File>,
   ): Promise<any> {
-    const memoryContent = {
-      dateCreated: data.dateCreated,
-      filePath: fileName,
-      contentType: 'file.mimetype',
-      description: data.description,
-    };
-    const updated = await this.memoryModel
-      .findOneAndUpdate(
-        { title },
-        { $push: { memoryContent } },
-        {
-          upsert: true,
-          new: true,
-        },
-      )
-      .exec()
-      .catch((error) => {
-        throw new BadRequestException(error);
+    const session = await this.connection.startSession();
+    try {
+      session.startTransaction();
+
+      const existingMemory = await this.memoryModel
+        .findOne({ title })
+        .session(session)
+        .exec();
+
+      if (!existingMemory) {
+        throw new NotFoundException('Memory not found');
+      }
+
+      const memoryContent: MemoryContentDto[] = [];
+      const fileNames: FileNamesDto[] = [];
+
+      files.forEach((file) => {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        memoryContent.push({
+          dateCreated: data.dateCreated,
+          filePath: fileName,
+          contentType: file.mimetype,
+          description: data.description,
+        });
+        fileNames.push({
+          fileObject: file,
+          fileName: fileName,
+        });
       });
 
-    return plainToInstance(MemoryResponseDto, updated.toObject());
+      await this.s3Service.uploadFiles(
+        this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+        fileNames,
+      );
+
+      const updated = await this.memoryModel
+        .findOneAndUpdate(
+          { title },
+          { $push: { memoryContent: { $each: memoryContent } } },
+          {
+            new: true,
+            session,
+          },
+        )
+        .exec();
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return plainToInstance(MemoryResponseDto, updated.toObject());
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   }
 
   async findAll(
@@ -117,10 +151,13 @@ export class MemoryService {
       query.exec(),
       this.memoryModel.countDocuments().exec(),
     ]);
+    const transformedData = await this.attachDownloadUrl(data);
     const result = {
-      data: plainToInstance(MemoryResponseDto, data, {
-        excludeExtraneousValues: true,
-      }),
+      data: transformedData.map((item) =>
+        plainToInstance(MemoryResponseDto, item, {
+          excludeExtraneousValues: true,
+        }),
+      ),
       pages: Math.ceil(total / pagination?.perPage),
       total,
       currentPage: pagination?.page || 1,
@@ -138,10 +175,8 @@ export class MemoryService {
         throw new NotFoundException();
       });
 
-    return plainToInstance(
-      MemoryResponseDto,
-      await this.attachDownloadUrl(result),
-    );
+    const [transformed] = await this.attachDownloadUrl([result]);
+    return plainToInstance(MemoryResponseDto, transformed);
   }
 
   async delete(title: string): Promise<void> {
@@ -178,20 +213,24 @@ export class MemoryService {
   }
 
   private async attachDownloadUrl(
-    result: MemoryResponseDto,
-  ): Promise<MemoryResponseDto> {
-    const memoryFiles = result.memoryContent.map((mc) => mc.filePath);
-    const s3Paths = await Promise.all(
-      memoryFiles.map((filePath) =>
-        this.s3Service.getDownloadUrl(
-          this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-          filePath,
-        ),
-      ),
+    results: MemoryResponseDto[],
+  ): Promise<MemoryResponseDto[]> {
+    return Promise.all(
+      results.map(async (result) => {
+        const memoryFiles = result.memoryContent.map((mc) => mc.filePath);
+        const s3Paths = await Promise.all(
+          memoryFiles.map((filePath) =>
+            this.s3Service.getDownloadUrl(
+              this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+              filePath,
+            ),
+          ),
+        );
+        result.memoryContent.forEach((item, idx) => {
+          item.filePath = s3Paths[idx];
+        });
+        return result;
+      }),
     );
-    result.memoryContent.forEach((item, idx) => {
-      item.filePath = s3Paths[idx];
-    });
-    return result;
   }
 }
