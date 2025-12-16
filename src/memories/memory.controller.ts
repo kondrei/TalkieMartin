@@ -9,7 +9,6 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -26,7 +25,7 @@ import { MemoryService } from './memory.service';
 import { MemoryParamDto } from './dto/memory-params.dto';
 import { MemoryDto } from './dto/memory.dto';
 import { PaginationResponseDto } from './dto/pagination-response.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { MemoryResponseDto } from './dto/memory-response.dto';
 import { FilePipe } from '../pipes/file-validation.pipe';
 import { plainToInstance } from 'class-transformer';

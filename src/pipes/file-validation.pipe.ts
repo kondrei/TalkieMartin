@@ -8,7 +8,7 @@ export class FilePipe implements PipeTransform {
     if (!value) {
       return value;
     }
-    
+
     value.forEach((file: Express.Multer.File) => {
       const isValid = this.fileTypes.includes(file.mimetype);
 

@@ -39,7 +39,7 @@ export class S3Service {
         return false;
       }
       console.error('Error checking if file exists in S3:', error);
-      throw error; 
+      throw error;
     }
   }
 
